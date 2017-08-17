@@ -14,21 +14,23 @@ class JobsController extends Controller
      */
     public function index(Request $request)
     {
-        $sortCol = $request->input('sort', 'local');
+        $sorts = explode(',', $request->input('sort', ''));
 
-        $sortDir = starts_with($sortCol, '-') ? 'desc' : 'asc';
-        $sortCol = ltrim($sortCol, '-');
-        return Job::with('company')->orderBy($sortCol,$sortDir)->paginate(20);
-    }
+        // create a consult
+        $query = Job::query();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        foreach ($sorts as $sortCol) {
+            $sortDir = starts_with($sortCol, '-') ? 'desc' : 'asc';
+            $sortCol = ltrim($sortCol, '-');
+
+            $query->orderBy($sortCol, $sortDir);
+        }
+        // Orderning querys
+
+        //JSON API
+        return $query->with('company')->paginate(20);
+
+
     }
 
     /**
@@ -66,16 +68,6 @@ class JobsController extends Controller
         return response()->json($job);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -115,6 +107,10 @@ class JobsController extends Controller
             ], 404);
         }
 
-        $job->delete();    
+        $job->delete();
+
+        return response()->json([
+            'message' => 'Deleted successfully',
+            ], 200);  
     }
 }
